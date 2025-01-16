@@ -1,8 +1,8 @@
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, redirect, url_for
 import cv2
 import numpy as np
 import mediapipe as mp
-from tensorflow.keras.models import load_model # type: ignore
+from tensorflow.keras.models import load_model  # type: ignore
 import base64
 from io import BytesIO
 from PIL import Image
@@ -32,9 +32,25 @@ def extract_keypoints(results):
     rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
     return np.concatenate([pose, face, lh, rh])
 
-# Route to serve the main HTML page
-@app.route('/')
-def index():
+# Route to serve the sign-in page
+@app.route('/', methods=['GET', 'POST'])
+def sign_in():
+    if request.method == 'POST':
+        # Get username and password from the form
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Simple authentication logic (replace with actual authentication)
+        if username == 'admin' and password == 'password':  # Replace with your authentication logic
+            return redirect(url_for('main'))  # Redirect to the main page on successful login
+        else:
+            error = 'Invalid username or password. Please try again.'
+            return render_template('sign-in.html', error=error)
+    return render_template('sign-in.html')
+
+@app.route('/main', methods=['GET', 'POST'])
+def main():
+    # Handle POST request logic if needed (e.g., authentication checks)
     return render_template('main.html')
 
 # Route to handle the webcam feed
